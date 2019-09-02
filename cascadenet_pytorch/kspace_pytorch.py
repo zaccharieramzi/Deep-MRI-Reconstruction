@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-
+from transforms import ifft2, fft2
 
 def data_consistency(k, k0, mask, noise_lvl=None):
     """
@@ -50,9 +50,9 @@ class DataConsistencyInKspace(nn.Module):
             k0   = k0.permute(0, 4, 2, 3, 1)
             mask = mask.permute(0, 4, 2, 3, 1)
 
-        k = torch.fft(x, 2, normalized=self.normalized)
+        k = fft2(x)
         out = data_consistency(k, k0, mask, self.noise_lvl)
-        x_res = torch.ifft(out, 2, normalized=self.normalized)
+        x_res = ifft2(out)
 
         if x.dim() == 4:
             x_res = x_res.permute(0, 3, 1, 2)

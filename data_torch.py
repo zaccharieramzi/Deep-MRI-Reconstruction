@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from data import MaskedUntouched2DSequence, MaskedUntouched2DAllLoadedSequence, MaskedUntouched2DRealSequence
+from data.data import MaskedUntouched2DSequence, MaskedUntouched2DAllLoadedSequence, MaskedUntouched2DRealSequence
 
 class MaskedUntouched2DDataset(MaskedUntouched2DSequence, Dataset):
 

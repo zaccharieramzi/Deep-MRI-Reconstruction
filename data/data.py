@@ -8,7 +8,7 @@ import numpy as np
 from tensorflow.keras.utils import Sequence
 
 from fourier import FFT2
-from utils import crop_center, gen_mask, normalize, normalize_instance
+from utils.utils import crop_center, gen_mask, normalize, normalize_instance
 
 def from_test_file_to_mask_and_kspace(filename):
     with  h5py.File(filename) as h5_obj:

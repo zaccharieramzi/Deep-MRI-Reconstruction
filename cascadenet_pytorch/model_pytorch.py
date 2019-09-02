@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable, grad
 import numpy as np
 import cascadenet_pytorch.kspace_pytorch as cl
-
+from transforms import ifft2, complex_abs, center_crop
 
 def lrelu():
     return nn.LeakyReLU(0.01, inplace=True)
@@ -37,8 +37,8 @@ def conv_block(n_ch, nd, nf=32, ks=3, dilation=1, bn=False, nl='lrelu', conv_dim
     def conv_i():
         return conv(nf,   nf, ks, stride=1, padding=pad_dilconv, dilation=dilation, bias=True)
 
-    conv_1 = conv(n_ch, nf, ks, stride=1, padding=pad_conv, bias=True)
-    conv_n = conv(nf, n_out, ks, stride=1, padding=pad_conv, bias=True)
+    conv_1 = conv(n_ch, nf, ks, stride=1, padding=pad_conv, bias=False)
+    conv_n = conv(nf, n_out, ks, stride=1, padding=pad_conv, bias=False)
 
     # relu
     nll = relu if nl == 'relu' else lrelu
@@ -55,7 +55,7 @@ def conv_block(n_ch, nd, nf=32, ks=3, dilation=1, bn=False, nl='lrelu', conv_dim
 
 
 class DnCn(nn.Module):
-    def __init__(self, n_channels=2, nc=5, nd=5, **kwargs):
+    def __init__(self, nc=5, nd=5, **kwargs):
         super(DnCn, self).__init__()
         self.nc = nc
         self.nd = nd
@@ -66,18 +66,27 @@ class DnCn(nn.Module):
         conv_layer = conv_block
 
         for i in range(nc):
-            conv_blocks.append(conv_layer(n_channels, nd, **kwargs))
+            conv_blocks.append(conv_layer(2, nd, **kwargs))
             dcs.append(cl.DataConsistencyInKspace(norm='ortho'))
 
         self.conv_blocks = nn.ModuleList(conv_blocks)
         self.dcs = dcs
 
-    def forward(self, x, k, m):
+    def forward(self, k, m):
+        x = ifft2(k)
+        x = x.permute(0, 3, 1, 2)
+        m = m[..., None]
+        m = m.expand_as(k).float()
+        m = m.permute(0, 3, 1, 2)
+        k = k.permute(0, 3, 1, 2)
         for i in range(self.nc):
             x_cnn = self.conv_blocks[i](x)
             x = x + x_cnn
             x = self.dcs[i].perform(x, k, m)
-
+        x = x.permute(0, 2, 3, 1)
+        # equivalent of taking the module of the image
+        x = complex_abs(x)
+        x = center_crop(x, (320, 320))
         return x
 
 
@@ -407,5 +416,3 @@ class CRNN_MRI(nn.Module):
                 torch.cuda.empty_cache()
 
         return net['t%d_out'%i]
-
-
