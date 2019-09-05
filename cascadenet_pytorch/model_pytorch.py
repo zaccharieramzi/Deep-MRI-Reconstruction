@@ -37,8 +37,8 @@ def conv_block(n_ch, nd, nf=32, ks=3, dilation=1, bn=False, nl='lrelu', conv_dim
     def conv_i():
         return conv(nf,   nf, ks, stride=1, padding=pad_dilconv, dilation=dilation, bias=True)
 
-    conv_1 = conv(n_ch, nf, ks, stride=1, padding=pad_conv, bias=False)
-    conv_n = conv(nf, n_out, ks, stride=1, padding=pad_conv, bias=False)
+    conv_1 = conv(n_ch, nf, ks, stride=1, padding=pad_conv, bias=True)
+    conv_n = conv(nf, n_out, ks, stride=1, padding=pad_conv, bias=True)
 
     # relu
     nll = relu if nl == 'relu' else lrelu
