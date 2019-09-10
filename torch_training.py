@@ -20,9 +20,9 @@ def train_epoch(epoch, model, data_loader, optimizer, writer, device, hard_limit
         if hard_limit is not None and i_iter > hard_limit:
             break
         kspace, mask, image_gt = data
-        kspace = kspace[0]
+        kspace = kspace[0] * 1e6
         mask = mask[0]
-        image_gt = image_gt[0]
+        image_gt = image_gt[0] * 1e6
         kspace = kspace.to(device)
         mask = mask.to(device)
         image_gt = image_gt.to(device)
