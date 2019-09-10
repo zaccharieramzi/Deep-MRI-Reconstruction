@@ -16,6 +16,8 @@ def torch_psnr(image_pred, image_gt):
 def train_epoch(epoch, model, data_loader, optimizer, writer, device, hard_limit=None, tqdm_wrapper=tqdm):
     model.train()
     global_step = epoch * len(data_loader)
+    if hard_limit is not None:
+        global_step = epoch * hard_limit
     for i_iter, data in tqdm_wrapper(enumerate(data_loader), total=len(data_loader), desc='Training iterations'):
         if hard_limit is not None and i_iter > hard_limit:
             break
@@ -64,7 +66,7 @@ def evaluate(epoch, model, data_loader, writer, device, hard_limit=None, tqdm_wr
 
             loss = F.mse_loss(image_pred, image_gt, reduction='mean')
             losses.append(loss.item())
-            psnr = torch_psnr(image_pred, image_pred)
+            psnr = torch_psnr(image_pred, image_gt)
             psnrs.append(psnr.item())
         if writer is not None:
             save_images(image_gt, 'Target')
